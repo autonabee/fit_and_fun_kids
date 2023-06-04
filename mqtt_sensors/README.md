@@ -42,7 +42,6 @@ Some reminders to debug
 Fit_and_Fun_Kids is based on three main open-source projects:
 
 * [scratch](https://scratch.mit.edu/) a support to creative coding for everyone
-* [scratch projects](https://scratch.mit.edu/studios/33100170/) example in scratch
 * [sb3topy](https://github.com/autonabee/sb3topy/) a Scratch to Python converter
 * [fit_and_fun](https://github.com/autonabee/fit_and_fun)
 
