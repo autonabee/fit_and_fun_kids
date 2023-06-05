@@ -36,8 +36,22 @@ class Runtime_sensor(Runtime):
         self.sensor_lock=threading.Lock()
         self.sensor_get_lock=threading.Lock()
 
-    def sensor_callback(self, client, userdata, message):
-            print('EVENT SENSOR', self.sensor)
+    def sensor_orientation_callback(self, client, userdata, message):
+            try:
+                orientation_str=str(message.payload.decode("utf-8"))
+                orientation = [float(x) for x in orientation_str.split()]
+                self.sensor=orientation[1]
+                self.util.sprites.stage.var_niveau_activite=int(-self.sensor/16)
+                print('Event Sensor orientation', self.sensor,'->', self.util.sprites.stage.var_niveau_activite)
+                self.sensor_get_lock.release()
+            except Exception:
+               print('Error in mqtt message')
+               self.sensor=0
+               #self.sensor_get_lock.release()
+
+
+    def sensor_keyboard_callback(self, client, userdata, message):
+            print('EVENT SENSOR KEYBOARD', self.sensor)
             try:
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
@@ -45,7 +59,7 @@ class Runtime_sensor(Runtime):
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
-               self.sensor_get_lock.release()
+               #self.sensor_get_lock.release()
 
     # Redefinition of the method using sensor/mqtt interaction
     async def main_loop(self):
@@ -56,8 +70,9 @@ class Runtime_sensor(Runtime):
         # Start green flag
         self.events.send(self.util, self.sprites, "green_flag")
 
-        subscribes=['fit_and_fun/speed']
-        mqtt_sub=mqtt_subscriber(self.sensor_callback, self.sensor_lock, subscribes, 'localhost')
+        #subscribes=['fit_and_fun/rot_speed']
+        subscribes=['fit_and_fun/orientation']
+        mqtt_sub=mqtt_subscriber(self.sensor_orientation_callback, self.sensor_lock, subscribes, 'localhost')
         mqtt_sub.run()
 
         # Main loop
@@ -67,9 +82,10 @@ class Runtime_sensor(Runtime):
             # Handle the event queue
             self.handle_events()
             
-            if self.sensor_get_lock.acquire(timeout = 0.05) == True:
+            if self.sensor_get_lock.acquire() == True:
                 #self.events.send(self.util, self.sprites, "key_space_pressed")
-                print("niveau_activite ", self.util.sprites.stage.var_niveau_activite)
+                #print("niveau_activite ", self.util.sprites.stage.var_niveau_activite)
+                pass
 
             # Allow threads to run
             await self.step_threads()

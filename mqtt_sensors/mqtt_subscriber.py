@@ -198,9 +198,19 @@ def example_joint():
     
     mqtt_imu.run()
     try:    
-        while True:
+        while True: 
             if mqtt_imu.reception:
-                print('ANGLE',  mqtt_imu.orientation_1[1], mqtt_imu.orientation[0], mqtt_imu.orientation_1[1] - mqtt_imu.orientation[0])
+                angle=0
+                if mqtt_imu.orientation_1 is not None:
+                    angle=angle+1
+                    print('OR1', mqtt_imu.orientation_1[1], end="")
+                if mqtt_imu.orientation is not None:
+                    angle=angle+1 
+                    print('OR', mqtt_imu.orientation[1], end="")
+                if angle == 2:
+                    print('ANGLE',  mqtt_imu.orientation_1[1] - mqtt_imu.orientation[0])
+                else:
+                    print("")
             else:
                 print('Mqtt sensors not detected')
             time.sleep(0.2)
