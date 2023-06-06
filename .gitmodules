@@ -1,3 +1,6 @@
 [submodule "mqtt_sensors"]
 	path = mqtt_sensors
 	url = https://github.com/autonabee/mqtt_sensors
+[submodule "sb3topy"]
+	path = sb3topy
+	url = https://github.com/autonabee/sb3topy

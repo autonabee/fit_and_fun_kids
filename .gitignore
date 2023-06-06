@@ -1,3 +1,4 @@
 __pycache__/
-sb3topy/
 .vscode/
+sb3topy/src/engine/runtime_sensor.py
+sb3topy/src/engine/__init__.py
