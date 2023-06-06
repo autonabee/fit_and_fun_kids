@@ -35,13 +35,17 @@ class Runtime_sensor(Runtime):
         self.sensor=0
         self.sensor_lock=threading.Lock()
         self.sensor_get_lock=threading.Lock()
+        # self.sensor_topic='fit_and_fun/rot_speed'
+        self.sensor_topic='fit_and_fun/orientation_1'
+        #self.mqtt_address='10.42.0.1'
+        self.mqtt_address='192.168.43.78'
 
     def sensor_orientation_callback(self, client, userdata, message):
             try:
                 orientation_str=str(message.payload.decode("utf-8"))
                 orientation = [float(x) for x in orientation_str.split()]
                 self.sensor=orientation[1]
-                self.util.sprites.stage.var_niveau_activite=int(-self.sensor/16)
+                self.util.sprites.stage.var_niveau_activite=int(abs(self.sensor/16))
                 print('Event Sensor orientation', self.sensor,'->', self.util.sprites.stage.var_niveau_activite)
                 self.sensor_get_lock.release()
             except Exception:
@@ -68,13 +72,13 @@ class Runtime_sensor(Runtime):
         asyncio.get_running_loop().slow_callback_duration = 0.49
 
         # Start green flag
+        print('LOOP00')
         self.events.send(self.util, self.sprites, "green_flag")
 
-        #subscribes=['fit_and_fun/rot_speed']
-        subscribes=['fit_and_fun/orientation']
-        mqtt_sub=mqtt_subscriber(self.sensor_orientation_callback, self.sensor_lock, subscribes, 'localhost')
+        subscribes=[self.sensor_topic]
+        mqtt_sub=mqtt_subscriber(self.sensor_orientation_callback, self.sensor_lock, subscribes, self.mqtt_address)
         mqtt_sub.run()
-
+        print('LOAD')
         # Main loop
         self.running = True
         count=0
