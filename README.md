@@ -51,12 +51,6 @@ Fit_and_Fun_Kids is based on three main open-source projects:
 * Import a new game `my_game.sb3` in `games/`
 * Generate python: `python gametopy.py my_game`
 * Play: `> play.sh my_game`
-* Presently, you need to overwrite the function `my_CALCUL_NIVEAU_ACTIVITE_CLAVIER` in games/mygames/project.py
-
-``` python
-async def my_CALCUL_NIVEAU_ACTIVITE_CLAVIER(self, util, ):
-        pass
-```
 
 ## Files
 
