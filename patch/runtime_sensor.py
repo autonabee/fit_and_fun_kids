@@ -37,33 +37,71 @@ class Runtime_sensor(Runtime):
         self.sensor_get_lock=threading.Lock()
         # self.sensor_topic='fit_and_fun/rot_speed'
         self.sensor_topic='fit_and_fun/orientation_1'
+        self.sensor_emg_topic='fit_and_fun/emg' 
         #self.mqtt_address='10.42.0.1'
         self.mqtt_address='192.168.43.78'
 
-    def sensor_orientation_callback(self, client, userdata, message):
+    def message_callback(self, client, userdata, message):
+        """ 
+        Mqtt callback treating all topics
+        """  
+        match message.topic:
+            case self.sensor_topic:
+                #self.get_keyboard(client, userdata, message)
+                self.get_orientation(client, userdata, message)
+            case self.sensor_emg_topic:
+                self.get_emg(client, userdata, message)
+            case _:
+                print("WARNING: topic " + message.topic + " unknown\n")
+
+
+    def get_orientation(self, client, userdata, message):
             try:
+                # Disable CALCUL_NIVEAU from scratch
+                self.util.sprites.stage.var_enable=0 
                 orientation_str=str(message.payload.decode("utf-8"))
                 orientation = [float(x) for x in orientation_str.split()]
                 self.sensor=orientation[1]
-                self.util.sprites.stage.var_niveau_activite=int(abs(self.sensor/16))
-                print('Event Sensor orientation', self.sensor,'->', self.util.sprites.stage.var_niveau_activite)
+                sensor_level=self.sensor
+                if sensor_level < 0.0:
+                    if self.util.sprites.stage.var_mode > 0:
+                        sensor_level=0.0
+                scale_level=80/abs(self.util.sprites.stage.var_mode)
+                
+                self.util.sprites.stage.var_niveau_activite=int(sensor_level/scale_level)
+                print('Event Sensor orientation', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
                 self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
-               #self.sensor_get_lock.release()
+               self.util.sprites.stage.var_niveau_activite=0
 
 
-    def sensor_keyboard_callback(self, client, userdata, message):
-            print('EVENT SENSOR KEYBOARD', self.sensor)
+    def get_emg(self, client, userdata, message):
             try:
+                # Disable CALCUL_NIVEAU from scratch
+                self.util.sprites.stage.var_enable=0 
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
+                print('Event Sensor emg', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
+                self.sensor_get_lock.release()
+            except Exception:
+               print('Error in mqtt message')
+               self.sensor=0 
+               self.util.sprites.stage.var_niveau_activite=0
+
+    def get_keyboard(self, client, userdata, message):
+            try:
+                # Disable CALCUL_NIVEAU from scratch
+                self.util.sprites.stage.var_enable=0 
+                self.sensor=float(str(message.payload.decode("utf-8")))
+                self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
+                print('Event Sensor keyboard', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
                 self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
-               #self.sensor_get_lock.release()
+
 
     # Redefinition of the method using sensor/mqtt interaction
     async def main_loop(self):
@@ -72,13 +110,11 @@ class Runtime_sensor(Runtime):
         asyncio.get_running_loop().slow_callback_duration = 0.49
 
         # Start green flag
-        print('LOOP00')
         self.events.send(self.util, self.sprites, "green_flag")
 
-        subscribes=[self.sensor_topic]
-        mqtt_sub=mqtt_subscriber(self.sensor_orientation_callback, self.sensor_lock, subscribes, self.mqtt_address)
+        subscribes=[self.sensor_topic, self.sensor_emg_topic]
+        mqtt_sub=mqtt_subscriber(self.message_callback, self.sensor_lock, subscribes, self.mqtt_address)
         mqtt_sub.run()
-        print('LOAD')
         # Main loop
         self.running = True
         count=0
