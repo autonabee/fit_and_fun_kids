@@ -24,21 +24,22 @@ struct esp_config {
     bool tilt;
     /* Euler orientation */
     bool orientation;
+    /* EMG sensor */
+    bool emg;
     /* Buttons */
     bool buttons;
     /* Display data on serial line */
     bool display;
 };
 
-//struct esp_config cfg = {"fit_and_fun", "", "10.42.0.1","fit_and_fun", "", 100, true, false, false, false, true};
-struct esp_config cfg = {"honor5_roger", "", "192.168.43.78", "fit_and_fun", "_1", 100, true, false, true, false, true};
+//struct esp_config cfg = {"fit_and_fun", "", "10.42.0.1","fit_and_fun", "", 100, true, false, false, false, false, true};
+struct esp_config cfg = {"honor5_roger", "", "192.168.43.78", "fit_and_fun", "_1", 100, false, false, true, false, false, true};
 
 /* Hardware pin for definition and leds */
 const int buttonOnePin = 14;
 const int buttonTwoPin = 15;
-int buttonOneState = 0;
-int buttonTwoState = 0;
 const int ledPin =  13; 
+const int emgPin = 36;
 
 /* Check I2C device address */                                                          
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28); 
@@ -54,6 +55,10 @@ char topic_tilt[TOPIC_SIZE];
 char topic_rot_speed[TOPIC_SIZE];
 char topic_button1[TOPIC_SIZE];
 char topic_button2[TOPIC_SIZE]; 
+/* Sensor variables initialisation */
+int buttonOneState = 0;
+int buttonTwoState = 0;
+float emg = 0.0F;
 
 /* Network connection */
 void setupWifi();
@@ -158,6 +163,19 @@ void loop() {
     client.publish(topic_button1, msg_single);
     snprintf(msg_single, MSG_BUFFER_SINGLE_SIZE, "%s", buttonTwoState == HIGH ? "false" : "true");
     client.publish(topic_button2, msg_single);
+  }
+  if (cfg.emg) {
+     /* Get emg value */
+    emg = analogRead(emgPin); 
+    /* Print plotable ide arduino data on serial port */
+    if (cfg.display) {
+      Serial.print("emg:");
+      Serial.print(emg);
+      Serial.println("");
+    }
+    /* Creation and sending mqtt messages */
+    snprintf(msg_single, MSG_BUFFER_SINGLE_SIZE, "%6.2f", emg);
+    client.publish(topic_rot_speed, msg_single);
   }
   delay(cfg.delay);
 }

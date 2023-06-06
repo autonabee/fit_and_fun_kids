@@ -23,21 +23,22 @@ struct esp_config {
     bool tilt;
     /* Euler orientation */
     bool orientation;
+    /* EMG sensor */
+    bool emg;
     /* Buttons */
     bool buttons;
     /* Display data on serial line */
     bool display;
 };
 
-//struct esp_config cfg = {"fit_and_fun", "", "10.42.0.1","fit_and_fun", "", 100, true, false, false, false, true};
-struct esp_config cfg = {"honor5_roger", "", "192.168.43.78", "fit_and_fun", "_1", 100, false, false, true, false, true};
+//struct esp_config cfg = {"fit_and_fun", "", "10.42.0.1","fit_and_fun", "", 100, true, false, false, false, false, true};
+struct esp_config cfg = {"honor5_roger", "", "192.168.43.78", "fit_and_fun", "", 100, false, false, true, true, false, true};
 
 /* Hardware pin for definition and leds */
 const int buttonOnePin = 14;
 const int buttonTwoPin = 15;
-int buttonOneState = 0;
-int buttonTwoState = 0;
 const int ledPin =  13; 
+const int emgPin = 36;
 
 /* Mqtt string messages */
 #define MSG_BUFFER_SINGLE_SIZE (10)
@@ -58,7 +59,9 @@ float gyroZ = 0.0F;
 float orientX = 0.0F;
 float orientY = 0.0F;
 float orientZ = 0.0F;
-
+int buttonOneState = 0;
+int buttonTwoState = 0;
+float emg = 0.0F;
 
 /* Network connection */
 void setupWifi();
@@ -86,10 +89,13 @@ void setup() {
     pinMode(buttonOnePin, INPUT_PULLUP);
     pinMode(buttonTwoPin, INPUT_PULLUP);
     pinMode(ledPin, OUTPUT);
+  } 
+
+  if (cfg.emg) {
+    pinMode(36, ANALOG);
   }
 
-  delay(1000);                                                                                   
-                  
+  delay(1000);                                                                                                    
 }
 
 /* Arduino code run continuously */
@@ -161,6 +167,21 @@ void loop() {
     client.publish(topic_button1, msg_single);
     snprintf(msg_single, MSG_BUFFER_SINGLE_SIZE, "%s", buttonTwoState == HIGH ? "false" : "true");
     client.publish(topic_button2, msg_single);
+  }
+  if (cfg.emg) {
+     /* Get emg value */
+    emg = analogRead(emgPin); 
+    /* Print plotable ide arduino data on serial port */
+    if (cfg.display) {
+      Serial.print("emg:");
+      Serial.print(emg);
+      Serial.println("");
+      M5.Lcd.setCursor(0, 40);
+      M5.Lcd.printf("emg:%5.2f", emg);
+    }
+    /* Creation and sending mqtt messages */
+    snprintf(msg_single, MSG_BUFFER_SINGLE_SIZE, "%6.2f", emg);
+    client.publish(topic_rot_speed, msg_single);
   }
   delay(cfg.delay);
 }
