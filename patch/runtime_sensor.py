@@ -16,6 +16,8 @@ from .events import SPRITES
 
 from mqtt_subscriber import mqtt_subscriber
 import threading
+import yaml
+from yaml.loader import SafeLoader
 
 class Runtime_sensor(Runtime):
     """
@@ -35,12 +37,29 @@ class Runtime_sensor(Runtime):
         self.sensor=0
         self.scale_sensor=0
         self.sensor_lock=threading.Lock()
-        #self.sensor_get_lock=threading.Lock()
-        # self.sensor_topic='fit_and_fun/rot_speed'
-        self.sensor_topic='fit_and_fun/orientation_1'
-        self.sensor_emg_topic='fit_and_fun/emg' 
-        #self.mqtt_address='10.42.0.1'
-        self.mqtt_address='192.168.43.78'
+        # Set mqtt_address, sensor_topic, sensor_emg_topic
+        self.load_mqtt_config('mqtt.yaml')
+        print('**', self.mqtt_address)
+        print('**', self.sensor_topic)
+        print('**', self.sensor_emg_topic)
+
+    def load_mqtt_config(self, filename):
+        # Default values
+        self.mqtt_address='10.42.0.2'
+        self.sensor_topic='fit_and_fun/orientation'
+        self.sensor_emg_topic='fit_and_fun/emg'
+
+        try:
+            with open(filename) as f:
+                data = yaml.load(f, Loader=SafeLoader)
+                if 'mqtt_address' in data.keys():
+                    self.mqtt_address=data['mqtt_address']
+                if 'sensor_topic' in data.keys(): 
+                    self.sensor_topic=data['sensor_topic']
+                if 'sensor_emg_topic' in data.keys():
+                    self.sensor_emg_topic=data['sensor_emg_topic']    
+        except Exception:
+            print('Warning:: load_mqtt_config failed')
 
     def message_callback(self, client, userdata, message):
         """ 
@@ -82,10 +101,9 @@ class Runtime_sensor(Runtime):
                 else:
                     # Level mode 
                     self.scale_sensor=int(sensor_level/scale_level)
-                    self.util.sprites.stage.var_niveau_activite=self.scale_sensor
-                
+                    self.util.sprites.stage.var_niveau_activite=self.scale_sensor        
                 print('Event Sensor orientation', self.sensor, self.scale_sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                #self.sensor_get_lock.release()
+        
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
@@ -99,7 +117,6 @@ class Runtime_sensor(Runtime):
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
                 print('Event Sensor emg', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                #self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0 
@@ -112,7 +129,6 @@ class Runtime_sensor(Runtime):
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
                 print('Event Sensor keyboard', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                #self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
@@ -136,12 +152,7 @@ class Runtime_sensor(Runtime):
         while self.running:
             # Handle the event queue
             self.handle_events()
-            
-           #if self.sensor_get_lock.acquire() == True:
-                #self.events.send(self.util, self.sprites, "key_space_pressed")
-                #print("niveau_activite ", self.util.sprites.stage.var_niveau_activite)
-           #    pass
-
+        
             # Allow threads to run
             await self.step_threads()
 
