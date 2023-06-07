@@ -51,8 +51,16 @@ Fit_and_Fun_Kids is based on three main open-source projects:
 ## Getting started
 
 * Import a new game `my_game.sb3` in `games/`
+* If necessary put the mqtt config file `mqtt.yaml` in current path
 * Generate python: `python gametopy.py my_game`
 * Play: `> play.sh my_game`
+
+Example of `mqtt.yaml` file:
+
+```yaml
+mqtt_address:  '192.168.43.78' 
+sensor_topic: 'fit_and_fun/orientation_1'
+```
 
 ## Files
 
