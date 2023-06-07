@@ -33,8 +33,9 @@ class Runtime_sensor(Runtime):
         Runtime.__init__(self, targets)
 
         self.sensor=0
+        self.scale_sensor=0
         self.sensor_lock=threading.Lock()
-        self.sensor_get_lock=threading.Lock()
+        #self.sensor_get_lock=threading.Lock()
         # self.sensor_topic='fit_and_fun/rot_speed'
         self.sensor_topic='fit_and_fun/orientation_1'
         self.sensor_emg_topic='fit_and_fun/emg' 
@@ -61,16 +62,30 @@ class Runtime_sensor(Runtime):
                 self.util.sprites.stage.var_enable=0 
                 orientation_str=str(message.payload.decode("utf-8"))
                 orientation = [float(x) for x in orientation_str.split()]
+                # Store raw sensor value
                 self.sensor=orientation[1]
-                sensor_level=self.sensor
+                # 'Normalize'/'Scale the raw sensor value
+                sensor_level=orientation[1]
                 if sensor_level < 0.0:
                     if self.util.sprites.stage.var_mode > 0:
                         sensor_level=0.0
                 scale_level=80/abs(self.util.sprites.stage.var_mode)
+            
+                if self.util.sprites.stage.var_front==1:
+                    # Front detection for mode 2 states
+                    if  self.scale_sensor == 0:
+                        self.scale_sensor=int(sensor_level/scale_level)
+                        self.util.sprites.stage.var_niveau_activite=self.scale_sensor
+                    elif int(sensor_level/scale_level) == 0:
+                            self.scale_sensor = 0
+                            self.util.sprites.stage.var_niveau_activite = 0
+                else:
+                    # Level mode 
+                    self.scale_sensor=int(sensor_level/scale_level)
+                    self.util.sprites.stage.var_niveau_activite=self.scale_sensor
                 
-                self.util.sprites.stage.var_niveau_activite=int(sensor_level/scale_level)
-                print('Event Sensor orientation', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                self.sensor_get_lock.release()
+                print('Event Sensor orientation', self.sensor, self.scale_sensor,'->',  self.util.sprites.stage.var_niveau_activite)
+                #self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
@@ -84,7 +99,7 @@ class Runtime_sensor(Runtime):
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
                 print('Event Sensor emg', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                self.sensor_get_lock.release()
+                #self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0 
@@ -97,7 +112,7 @@ class Runtime_sensor(Runtime):
                 self.sensor=float(str(message.payload.decode("utf-8")))
                 self.util.sprites.stage.var_niveau_activite=int(self.sensor/10)
                 print('Event Sensor keyboard', self.sensor,'->',  self.util.sprites.stage.var_niveau_activite)
-                self.sensor_get_lock.release()
+                #self.sensor_get_lock.release()
             except Exception:
                print('Error in mqtt message')
                self.sensor=0
@@ -122,10 +137,10 @@ class Runtime_sensor(Runtime):
             # Handle the event queue
             self.handle_events()
             
-            if self.sensor_get_lock.acquire() == True:
+           #if self.sensor_get_lock.acquire() == True:
                 #self.events.send(self.util, self.sprites, "key_space_pressed")
                 #print("niveau_activite ", self.util.sprites.stage.var_niveau_activite)
-                pass
+           #    pass
 
             # Allow threads to run
             await self.step_threads()
