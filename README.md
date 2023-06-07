@@ -7,11 +7,13 @@ An interactive device to play with scratch game generated in python
 ### Requirements
 
 * `Ubuntu 22.04`
+* `Python > 3.10`
+* `git clone --recurse-submodules https://github.com/autonabee/fit_and_fun_kids`
 
 ### Import python modules and external project
 
 ```bash
-> ./install.sh
+> pip install -r requirements.txt
 ```
 
 ### Mqtt broker config
