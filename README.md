@@ -85,3 +85,12 @@ The actor (sprite) in the scratch game is controlled by the scratch variable `ni
 * Convert in python with `python gametopy.py Jeu_de_la_grenouille`
 * Launch the game `./play.sh Jeu_de_la_grenouille`
 * Launch the mqtt sensor or the keyboard emulator (`python sensor_keyboard.py`)
+
+## Bugs
+
+With Space_dog:
+
+* generation bug for  @on_backdrop('blue sky') instead @on_backdrop('Blue Sky')  (idem Accueilx)
+* Image size, offset and sprites positioning problem
+* Arc en Ciel creation (need a tempo to postpone the deletion)
+* looks_sayforsecs("arghhhhh !", 2) is not implemented => put a sleep to see the costume switch

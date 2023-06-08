@@ -1,0 +1,5 @@
+mqtt_address:  '192.168.43.78' 
+sensor_topic: 'fit_and_fun/orientation_1'
+sensor_min: 0
+sensor_max: 80
+

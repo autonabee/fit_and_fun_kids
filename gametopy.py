@@ -26,8 +26,9 @@ sb3topy.src.sb3topy.main.main([game_dir_sb3, game_dir])
 shutil.copy('patch/mqtt_subscriber.py', os.path.join(game_dir, 'mqtt_subscriber.py'))
 shutil.copy('patch/__init__.py', os.path.join(game_dir, 'engine', '__init__.py'))
 shutil.copy('patch/runtime_sensor.py', os.path.join(game_dir, 'engine', 'runtime_sensor.py'))
-if os.path.isfile('mqtt.yaml'):
-    shutil.copy('mqtt.yaml', os.path.join(game_dir, 'mqtt.yaml'))
+cfg_file_name='config_game.yaml'
+if os.path.isfile(cfg_file_name):
+    shutil.copy(cfg_file_name, os.path.join(game_dir, cfg_file_name))
 else:
-    shutil.copy('patch/mqtt.yaml', os.path.join(game_dir, 'mqtt.yaml'))
+    shutil.copy(os.path.join('patch',cfg_file_name), os.path.join(game_dir, cfg_file_name))
 
