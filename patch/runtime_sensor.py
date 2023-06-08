@@ -4,7 +4,7 @@ runtime_sensor.py
 Contains classes used to manage base program functions.
 extension of runtime.py
 """
-
+# Import des librairie
 import asyncio
 import logging
 import random
@@ -19,6 +19,7 @@ import threading
 import yaml
 from yaml.loader import SafeLoader
 
+# Definition de fonctions
 class Runtime_sensor(Runtime):
     """
     Container for everything needed to run the project
@@ -30,6 +31,7 @@ class Runtime_sensor(Runtime):
         running: Controls the main loop
     """
  
+    # Initialisation
     def __init__(self, targets):
  
         Runtime.__init__(self, targets)
@@ -40,6 +42,7 @@ class Runtime_sensor(Runtime):
         # Set mqtt_address, sensor_topic, sensor_emg_topic
         self.load_game_config('config_game.yaml')
 
+    # Connection à la commnucation sans fil avec les microcontrolleurs des capteurs
     def load_game_config(self, filename):
         # Default values
         self.mqtt_address='10.42.0.2'
@@ -64,6 +67,7 @@ class Runtime_sensor(Runtime):
         except Exception:
             print('Warning:: load_mqtt_config failed')
 
+    # Récupère l'info capteur
     def message_callback(self, client, userdata, message):
         """ 
         Mqtt callback treating all topics
@@ -77,6 +81,7 @@ class Runtime_sensor(Runtime):
             case _:
                 print("WARNING: topic " + message.topic + " unknown\n")
 
+    # Récupère l'orientation
     def get_orientation(self, client, userdata, message):
             try:
                 # Disable CALCUL_NIVEAU from scratch
@@ -85,6 +90,7 @@ class Runtime_sensor(Runtime):
                 orientation = [float(x) for x in orientation_str.split()]
                 # Store raw sensor value
                 self.sensor=orientation[1]
+                
                 # 'Normalize'/'Scale the raw sensor value
                 if self.sensor < self.sensor_min:
                     self.sensor = self.sensor_min
@@ -93,6 +99,7 @@ class Runtime_sensor(Runtime):
                 ratio_sensor_activite=self.util.sprites.stage.var_activite_max-self.util.sprites.stage.var_activite_min
                 ratio_sensor_activite=ratio_sensor_activite/(self.sensor_max-self.sensor_min)
                 
+                # Convertion la valeur en commande du jeu (binaire ou 6 niveau)
                 if self.util.sprites.stage.var_activite_front==1:
                     # Front detection for mode 2 states
                     offset=self.util.sprites.stage.var_activite_min -ratio_sensor_activite*self.sensor_min
@@ -115,7 +122,7 @@ class Runtime_sensor(Runtime):
                self.sensor=0
                self.util.sprites.stage.var_niveau_activite=0
 
-
+    # Récupère l'activité musculaire
     def get_emg(self, client, userdata, message):
             try:
                 # Disable CALCUL_NIVEAU from scratch
@@ -137,6 +144,7 @@ class Runtime_sensor(Runtime):
                self.sensor=0 
                self.util.sprites.stage.var_niveau_activite=0
 
+     # Récupère des interactions claviers (barre ESPACE)
     def get_keyboard(self, client, userdata, message):
             try:
                 # Disable CALCUL_NIVEAU from scratch
@@ -148,7 +156,7 @@ class Runtime_sensor(Runtime):
                print('Error in mqtt message')
                self.sensor=0
 
-
+    # Gestion de la boucle de récupération des données
     # Redefinition of the method using sensor/mqtt interaction
     async def main_loop(self):
         """Run the main loop"""
@@ -159,8 +167,11 @@ class Runtime_sensor(Runtime):
         self.events.send(self.util, self.sprites, "green_flag")
 
         subscribes=[self.sensor_topic, self.sensor_emg_topic]
-        mqtt_sub=mqtt_subscriber(self.message_callback, self.sensor_lock, subscribes, self.mqtt_address)
+        
+        # Récupère les infos capteurs
+        mqtt_sub=mqtt_subscriber(self.message_callback, self.sensor_lock, subscribes, self.mqtt_address) 
         mqtt_sub.run()
+        
         # Main loop
         self.running = True
         count=0
@@ -181,6 +192,7 @@ class Runtime_sensor(Runtime):
                 self.clock.tick()
         mqtt_sub.stop()
 
+#############################################"
 # Redefinition of start_program
 def start_program():
     """Run the program"""
