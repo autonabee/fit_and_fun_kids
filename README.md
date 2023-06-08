@@ -51,15 +51,17 @@ Fit_and_Fun_Kids is based on three main open-source projects:
 ## Getting started
 
 * Import a new game `my_game.sb3` in `games/`
-* If necessary put the mqtt config file `mqtt.yaml` in current path
+* If necessary set configuration values on file `config_game.yaml` in current path
 * Generate python: `python gametopy.py my_game`
 * Play: `> play.sh my_game`
 
-Example of `mqtt.yaml` file:
+Example of `config_game.yaml` file:
 
 ```yaml
 mqtt_address:  '192.168.43.78' 
 sensor_topic: 'fit_and_fun/orientation_1'
+sensor_min: 0
+sensor_max: 80
 ```
 
 ## Files
@@ -85,6 +87,13 @@ The actor (sprite) in the scratch game is controlled by the scratch variable `ni
 * Convert in python with `python gametopy.py Jeu_de_la_grenouille`
 * Launch the game `./play.sh Jeu_de_la_grenouille`
 * Launch the mqtt sensor or the keyboard emulator (`python sensor_keyboard.py`)
+
+## Games
+
+* `Jeu_du_chat_et_de_la_souris_mode`
+* `Jeu_du_chat_et_de_la_souris_mode`
+* `Attrape-Moouai_te_by_Tya`
+* `Space_dog` (hand-made modification in project.py see Bugs)
 
 ## Bugs
 
