@@ -103,3 +103,8 @@ With Space_dog:
 * Image size, offset and sprites positioning problem
 * Arc en Ciel creation (need a tempo to postpone the deletion)
 * looks_sayforsecs("arghhhhh !", 2) is not implemented => put a sleep to see the costume switch
+
+## License
+
+The software is under [Ceccil licence](./COPYING)
+
